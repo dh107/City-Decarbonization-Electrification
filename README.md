@@ -1,4 +1,4 @@
-## Major cities power systems towards decarbonized electrification 
+## Low carbon transition for cities in developing countries: towards decarbonized electrification 
 
-* Data processing and visualization
+* Tools for data processing and visualization
 * Case study: Beijing
