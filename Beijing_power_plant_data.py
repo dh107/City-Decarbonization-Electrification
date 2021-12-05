@@ -2,7 +2,11 @@
 """
 Created on Fri Oct 15 10:32:37 2021
 
-@author: DH
+@author: Da Huo
+
+# Process and visulize city power plant data
+  Low-carbon transition of Beijing's power systems
+
 """
 import numpy as np
 import pandas as pd
@@ -168,41 +172,51 @@ ax = plt.figure(figsize=(12,24))
 
 # Get a color for each bar
 #rgb = rand(len(thermal_plants_index),3)
-rgb=np.load('/Users/danie/Desktop/Beijing_energy_systems/data_processing_python/colorbar_for_plants.npy')
+rgb1=np.load('/Users/danie/Desktop/Beijing_energy_systems/data_processing_python/colorbar_for_plants.npy')
+rgb = rgb1[0:31,:]
+color_by_plant_type = pd.read_excel("power_plants3.xlsx", sheet_name='thermal_plant_color', index_col=0)
+rgb[:,0] = color_by_plant_type['r']
+rgb[:,1] = color_by_plant_type['g']
+rgb[:,2] = color_by_plant_type['b']
 
 plant_names = []
 for i in range(0,len(thermal_plants_index)):
     plant_names.append('T' + str(i))
 
+# NA = mpatches.Patch(color='blue', label='North America')
+# EU = mpatches.Patch(color='green', label='Europe')
+# AP = mpatches.Patch(color='red', label='Asia/Pacific')
+# SA = mpatches.Patch(color='yellow', label='South America')
+# plt.legend(handles=[NA,EU,AP,SA], loc=2)
+
 for i in range(0,len(years)):
     ax1 = ax.add_subplot(4,1,i+1) 
     ax1.bar(plant_names, height = data['Emission Intensity (kgCO2/kwh)'+str(years[i])],
-            width = data['Power Generation'+str(years[i])]/4e5, color=rgb)
+            width = data['Power Generation'+str(years[i])]/4.3e5, color=rgb)
    
     #y_avg = [np.nanmean(data['Emission Intensity (kgCO2/kwh)'+str(years[i])])] * len(thermal_plants_index)
     y_avg = [np.nansum(data['Emission Intensity (kgCO2/kwh)'+str(years[i])]*data['Power Generation'+str(years[i])])/np.nansum(data['Power Generation'+str(years[i])])] * len(thermal_plants_index)
     data2 = data.drop(['renewable'])
     y_avg_thermal = [np.nansum(data2['Emission Intensity (kgCO2/kwh)'+str(years[i])]*data2['Power Generation'+str(years[i])])/np.nansum(data2['Power Generation'+str(years[i])])] * len(thermal_plants_index)
     
-    ax1.plot(thermal_plants_index, y_avg, color='green', lw=3, ls='--', label="average plot")
-    ax1.plot(thermal_plants_index, y_avg_thermal, color='red', lw=3, ls='--', label="average plot")
+    ax1.plot(thermal_plants_index, y_avg, color='green', lw=3, ls='--', label="Thermal and Renewable Plants Average")
+    ax1.plot(thermal_plants_index, y_avg_thermal, color='red', lw=3, ls='--', label="Thermal Plants Average")
     ax1.set(
-        ylabel='Emission Intensity (kgCO2/kwh)',
+        ylabel='Emission Intensity (kg$CO_2$/kwh)',
+        xlabel='Power Plant',
         xlim=(thermal_plants_index.min(), thermal_plants_index.max()),
         ylim=(0,2.5),
         xticks=(thermal_plants_index),
-        title=("year " + str(years[i])))    
-      
+        title=("Thermal Plants in " + str(years[i])))    
+    ax1.legend(loc=1, prop={'size': 14})  
     ax1.yaxis.label.set_size(18)
+    ax1.xaxis.label.set_size(16)
     ax1.title.set_size(20)
     
 #%% Plot all **Renewable** plants at 2000, 2005, 2010, 2015
 data = pd.read_excel("power_plants3.xlsx" , sheet_name= "all_renewable_plants2", index_col=0)
 thermal_plants = data.index
 thermal_plants_index = np.arange(0,len(thermal_plants))
-
-#data = data.drop("Shougang Power Plant")
-#data = data.drop("Petro Qianjin Plant")
 
 years = ['2000','2005','2010','2015']
 #data['Power Generation' + str(years[1])] = np.zeros((len(thermal_plants),1))
@@ -219,18 +233,23 @@ for year in years:
         if plant1 in df.index:
             data.loc[plant1, 'Power Generation'+ str(year)] = df.loc[plant1, 'Power Generation (1e4kwh)']
             data.loc[plant1,'Emission Intensity (kgCO2/kwh)'+ str(year)] = plant_emission_intensity['Hydroelectric']
-        
+
+data.loc['All Solar Power Plants', 'Emission Intensity (kgCO2/kwh)2000'] = plant_emission_intensity['Solar']
+data.loc['All Solar Power Plants', 'Emission Intensity (kgCO2/kwh)2005'] = plant_emission_intensity['Solar']
+data.loc['All Solar Power Plants', 'Emission Intensity (kgCO2/kwh)2010'] = plant_emission_intensity['Solar']
+data.loc['All Solar Power Plants', 'Emission Intensity (kgCO2/kwh)2015'] = plant_emission_intensity['Solar']
+       
 ax = plt.figure(figsize=(8,24))
 
 # Get a color for each bar
 #rgb = rand(len(thermal_plants_index),3)
-rgb=np.load('/Users/danie/Desktop/Beijing_energy_systems/data_processing_python/colorbar_for_renewable_plants.npy')
+rgb=np.load('/Users/danie/Desktop/Beijing_energy_systems/data_processing_python/colorbar_for_renewable_plants2.npy')
 
 # plant_names = []
 # for i in range(0,len(thermal_plants_index)):
 #     plant_names.append('R' + str(i))
 
-plant_names = ['Hydropower Plants', 'Wind Power Plants','Solar Power Plants', ' ']
+plant_names = ['Hydropower Plants', 'Wind Power Plants','Solar Power Plants',' ']
 
 for i in range(0,len(years)):
     ax1 = ax.add_subplot(4,1,i+1) 
@@ -242,15 +261,16 @@ for i in range(0,len(years)):
     
     ax1.plot(thermal_plants_index, y_avg, color='red', lw=3, ls='--', label="average plot")
     ax1.set(
-        ylabel='Emission Intensity (kgCO2/kwh)',
+        ylabel='Emission Intensity (kg$CO_2$/kwh)',
         xlim=(thermal_plants_index.min(), thermal_plants_index.max()),
-        ylim=(0,0.03),
+        ylim=(0,0.09),
         xticks=(thermal_plants_index),
-        title=("year " + str(years[i]))) 
+        #title=("year " + str(years[i]))
+        ) 
     ax1.yaxis.label.set_size(18)
     ax1.xaxis.label.set_size(18)
     ax1.title.set_size(20)    
-    
+    ax1.margins(x=0.3, y=0.3)
 
 # fig, (ax1, ax2) = plt.subplots(2)
 # #fig = plt.figure(figsize=(8, 6))
